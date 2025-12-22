@@ -27,13 +27,17 @@ router.get('/', async (req, res, next) => {
     logger.info('/ called');
     try {
         //Step 2: task 1 - insert code here
+        const db = await connectToDatabase();
         //Step 2: task 2 - insert code here
+        const itemCol = db.collection('secondChanceItems');
         //Step 2: task 3 - insert code here
+        const items = await itemCol.find({}).toArray();
         //Step 2: task 4 - insert code here
+        res.json(items);
 
-        const collection = db.collection("secondChanceItems");
-        const secondChanceItems = await collection.find({}).toArray();
-        res.json(secondChanceItems);
+        // const collection = db.collection("secondChanceItems");
+        // const secondChanceItems = await collection.find({}).toArray();
+        // res.json(secondChanceItems);
     } catch (e) {
         logger.console.error('oops something went wrong', e)
         next(e);
@@ -41,14 +45,25 @@ router.get('/', async (req, res, next) => {
 });
 
 // Add a new item
-router.post('/', {Step 3: Task 6 insert code here}, async(req, res,next) => {
+router.post('/', upload.single('file') ,async(req, res,next) => {
     try {
 
         //Step 3: task 1 - insert code here
+        const db = await connectToDatabase();
         //Step 3: task 2 - insert code here
+        const itemsCol = db.collection('secondChanceItems');
         //Step 3: task 3 - insert code here
+        const data = req.body;
         //Step 3: task 4 - insert code here
+        const lastItemQuery = itemsCol.find().sort({'id': -1}).limit(1);
+        lastItemQuery.forEach(item => {
+            data.id = (parseInt(item.id) + 1).toString();
+        });
         //Step 3: task 5 - insert code here
+        const curDate = Math.floor(new Date().getTime() / 1000);
+        data.date_added = curDate;
+        
+        const addedItem = await itemsCol.insertOne(data);
         res.status(201).json(secondChanceItem.ops[0]);
     } catch (e) {
         next(e);
